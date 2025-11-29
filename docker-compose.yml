@@ -1,25 +1,27 @@
 version: '3.8'
 
 services:
-  # Ollama LLM Service
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ukraine-bot-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_models:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
-    restart: unless-stopped
-    networks:
-      - bot-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # Ollama LLM Service (OPTIONAL - comment out if using local Ollama)
+  # If you already have Ollama running locally on port 11434, keep this commented out
+  # and use OLLAMA_BASE_URL=http://host.docker.internal:11434 in .env
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ukraine-bot-ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_models:/root/.ollama
+  #   environment:
+  #     - OLLAMA_HOST=0.0.0.0
+  #   restart: unless-stopped
+  #   networks:
+  #     - bot-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
   # Qdrant Vector Database (primary choice)
   qdrant:
@@ -65,10 +67,11 @@ services:
       dockerfile: docker/Dockerfile.bot
     container_name: ukraine-bot-app
     depends_on:
-      ollama:
-        condition: service_healthy
       qdrant:
         condition: service_healthy
+      # Uncomment if using containerized Ollama:
+      # ollama:
+      #   condition: service_healthy
     volumes:
       - ./src:/app/src
       - ./data:/app/data
@@ -78,12 +81,15 @@ services:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
+      # OLLAMA_BASE_URL is read from .env file
+      # Use host.docker.internal:11434 for local Ollama
+      # Use ollama:11434 for containerized Ollama
     restart: unless-stopped
     networks:
       - bot-network
+    # Allow container to access host network for local Ollama
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: python -m src.bot.main
 
   # Web Scraper Service (runs on schedule)
@@ -94,7 +100,8 @@ services:
     container_name: ukraine-bot-scraper
     depends_on:
       - qdrant
-      - ollama
+      # Uncomment if using containerized Ollama:
+      # - ollama
     volumes:
       - ./src:/app/src
       - ./data:/app/data
@@ -104,12 +111,13 @@ services:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
+      # OLLAMA_BASE_URL is read from .env file
     restart: unless-stopped
     networks:
       - bot-network
+    # Allow container to access host network for local Ollama
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # Run weekly scraping via cron inside container
     command: sh -c "python -m src.scrapers.scheduler"
 

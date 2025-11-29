@@ -10,9 +10,14 @@ docker --version
 
 # Check Docker Compose is installed
 docker-compose --version
+
+# Check Ollama is running (you should already have this)
+ollama list
 ```
 
-If not installed, visit [Docker Installation Guide](https://docs.docker.com/get-docker/)
+If Docker is not installed, visit [Docker Installation Guide](https://docs.docker.com/get-docker/)
+
+> **Important**: This quickstart assumes you already have **Ollama running locally** on port 11434. If not, see [OLLAMA_CONFIG.md](OLLAMA_CONFIG.md) for containerized setup.
 
 ## 1. Configure Environment
 
@@ -41,16 +46,31 @@ docker-compose up -d
 docker-compose ps
 ```
 
-Expected output:
+Expected output (with local Ollama):
 ```
 NAME                   STATUS
-ukraine-bot-app        Up (healthy)
-ukraine-bot-ollama     Up (healthy)
+ukraine-bot-app        Up
 ukraine-bot-qdrant     Up (healthy)
 ukraine-bot-scraper    Up
 ```
 
-## 3. Download AI Models
+## 3. Verify/Download AI Models
+
+**If you already have Ollama running locally** (default configuration):
+
+```bash
+# Verify Ollama is running
+curl http://localhost:11434/api/tags
+
+# Check if you have the required models
+ollama list
+
+# Download models if needed
+ollama pull llama2:3b
+ollama pull nomic-embed-text
+```
+
+**If using containerized Ollama** (see OLLAMA_CONFIG.md):
 
 ```bash
 # Download the main language model (3B parameters, ~2GB)
@@ -61,6 +81,8 @@ docker exec ukraine-bot-ollama ollama pull nomic-embed-text
 ```
 
 This may take 5-10 minutes depending on your internet connection.
+
+> **Note**: By default, the project is configured to use your **local Ollama** instance. See [OLLAMA_CONFIG.md](OLLAMA_CONFIG.md) for details.
 
 ## 4. Test the Bot
 
@@ -88,6 +110,9 @@ docker-compose logs bot --tail=50
 
 # Verify token is correct
 grep TELEGRAM_BOT_TOKEN .env
+
+# Verify Ollama connection
+docker exec ukraine-bot-app curl http://host.docker.internal:11434/api/tags
 ```
 
 ### Out of memory errors

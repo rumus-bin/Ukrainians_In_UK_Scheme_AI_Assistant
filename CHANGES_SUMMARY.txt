@@ -1,0 +1,75 @@
+=======================================================================
+CONFIGURATION CHANGES - Support for Local Ollama Instance
+=======================================================================
+
+Issue: User already has Ollama running locally on port 11434
+Solution: Configured project to use local Ollama by default
+
+CHANGES MADE:
+=======================================================================
+
+1. docker-compose.yml
+   ✓ Commented out the Ollama service (prevents port conflict)
+   ✓ Removed Ollama from bot/scraper dependencies
+   ✓ Added extra_hosts with host-gateway for both services
+   ✓ Removed hardcoded OLLAMA_BASE_URL from environment section
+
+2. .env.example
+   ✓ Changed default OLLAMA_BASE_URL to: http://host.docker.internal:11434
+   ✓ Added comments explaining local vs containerized options
+   ✓ Provided alternative URL for containerized setup
+
+3. OLLAMA_CONFIG.md (NEW)
+   ✓ Complete guide for both deployment scenarios
+   ✓ Step-by-step configuration instructions
+   ✓ Testing and troubleshooting procedures
+   ✓ Clear explanation of how each option works
+
+4. QUICKSTART.md
+   ✓ Updated prerequisites to check for local Ollama
+   ✓ Added note about default configuration
+   ✓ Split model download section for local vs containerized
+   ✓ Updated expected service output (no ollama container)
+   ✓ Added Ollama connection verification to troubleshooting
+
+CURRENT CONFIGURATION (Default):
+=======================================================================
+
+✓ Ollama service: COMMENTED OUT
+✓ Default URL: http://host.docker.internal:11434 (local Ollama)
+✓ Services: bot, scraper, qdrant only
+✓ Port 11434: FREE (no conflict with local Ollama)
+
+TO USE YOUR LOCAL OLLAMA:
+=======================================================================
+
+1. Ensure Ollama is running:
+   ollama list
+
+2. Ensure you have the models:
+   ollama pull llama2:3b
+   ollama pull nomic-embed-text
+
+3. Copy .env.example to .env:
+   cp .env.example .env
+
+4. Add your bot token to .env:
+   TELEGRAM_BOT_TOKEN=your_token_here
+
+5. The OLLAMA_BASE_URL is already correctly set:
+   OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+6. Start services:
+   docker-compose up -d
+
+That's it! The bot will connect to your local Ollama instance.
+
+VERIFICATION:
+=======================================================================
+
+Test connection from bot container to your local Ollama:
+docker exec ukraine-bot-app curl http://host.docker.internal:11434/api/tags
+
+Should return JSON with your model list.
+
+=======================================================================

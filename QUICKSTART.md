@@ -66,18 +66,18 @@ curl http://localhost:11434/api/tags
 ollama list
 
 # Download models if needed
-ollama pull llama2:3b
-ollama pull nomic-embed-text
+ollama pull llama3.2:3b
+ollama pull mxbai-embed-large
 ```
 
 **If using containerized Ollama** (see OLLAMA_CONFIG.md):
 
 ```bash
 # Download the main language model (3B parameters, ~2GB)
-docker exec ukraine-bot-ollama ollama pull llama2:3b
+docker exec ukraine-bot-ollama ollama pull llama3.2:3b
 
-# Download the embedding model (~270MB)
-docker exec ukraine-bot-ollama ollama pull nomic-embed-text
+# Download the embedding model (~670MB)
+docker exec ukraine-bot-ollama ollama pull mxbai-embed-large
 ```
 
 This may take 5-10 minutes depending on your internet connection.

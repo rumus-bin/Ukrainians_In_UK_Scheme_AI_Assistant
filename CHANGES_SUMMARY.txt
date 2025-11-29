@@ -1,5 +1,54 @@
 =======================================================================
-CONFIGURATION CHANGES - Support for Local Ollama Instance
+CONFIGURATION CHANGES - Model Selection & Ollama Configuration
+=======================================================================
+Date: 2025-11-29
+Status: Updated to optimal models for Ukrainian language support
+
+=======================================================================
+LATEST UPDATE: OPTIMIZED MODEL SELECTION
+=======================================================================
+
+Model Update Rationale:
+- Previous: llama2:3b + nomic-embed-text (English-focused)
+- Current: llama3.2:3b + mxbai-embed-large (Optimized for Ukrainian)
+
+Reasons for Change:
+1. llama3.2:3b - Meta's latest 3B model (2024)
+   ✓ Better multilingual support including Ukrainian
+   ✓ Improved instruction following (critical for safety prompts)
+   ✓ Enhanced RAG performance
+   ✓ Same size/speed as llama2 but better quality
+
+2. mxbai-embed-large - Multilingual embeddings
+   ✓ Excellent Ukrainian language support
+   ✓ Better semantic search for Slavic languages
+   ✓ Improved RAG retrieval accuracy
+
+FILES UPDATED:
+=======================================================================
+
+1. .env.example
+   ✓ OLLAMA_MODEL_NAME: llama2:3b → llama3.2:3b
+   ✓ OLLAMA_EMBEDDING_MODEL: nomic-embed-text → mxbai-embed-large
+   ✓ All agent models updated to llama3.2:3b
+
+2. QUICKSTART.md
+   ✓ Updated model download commands for local Ollama
+   ✓ Updated model download commands for containerized Ollama
+   ✓ Updated embedding model size info (~670MB)
+
+3. OLLAMA_CONFIG.md
+   ✓ Updated all model references in setup instructions
+   ✓ Updated troubleshooting section with new models
+
+4. docker/Dockerfile.bot
+   ✓ Updated Python version: 3.11-slim → 3.14-slim
+
+5. docker/Dockerfile.scraper
+   ✓ Updated Python version: 3.11-slim → 3.14-slim
+
+=======================================================================
+PREVIOUS UPDATE: OLLAMA CONFIGURATION
 =======================================================================
 
 Issue: User already has Ollama running locally on port 11434
@@ -47,8 +96,8 @@ TO USE YOUR LOCAL OLLAMA:
    ollama list
 
 2. Ensure you have the models:
-   ollama pull llama2:3b
-   ollama pull nomic-embed-text
+   ollama pull llama3.2:3b
+   ollama pull mxbai-embed-large
 
 3. Copy .env.example to .env:
    cp .env.example .env

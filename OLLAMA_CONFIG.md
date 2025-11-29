@@ -29,8 +29,8 @@ ollama list
 4. **Make sure you have the required models**:
 ```bash
 # Download if you don't have them
-ollama pull llama2:3b
-ollama pull nomic-embed-text
+ollama pull llama3.2:3b
+ollama pull mxbai-embed-large
 ```
 
 5. **Start only the bot services**:
@@ -102,8 +102,8 @@ docker-compose up -d
 
 5. **Download models into the container**:
 ```bash
-docker exec ukraine-bot-ollama ollama pull llama2:3b
-docker exec ukraine-bot-ollama ollama pull nomic-embed-text
+docker exec ukraine-bot-ollama ollama pull llama3.2:3b
+docker exec ukraine-bot-ollama ollama pull mxbai-embed-large
 ```
 
 ### How it works:
@@ -168,14 +168,14 @@ docker-compose logs bot | grep -i ollama
 
 **Local Ollama**:
 ```bash
-ollama pull llama2:3b
-ollama pull nomic-embed-text
+ollama pull llama3.2:3b
+ollama pull mxbai-embed-large
 ```
 
 **Containerized Ollama**:
 ```bash
-docker exec ukraine-bot-ollama ollama pull llama2:3b
-docker exec ukraine-bot-ollama ollama pull nomic-embed-text
+docker exec ukraine-bot-ollama ollama pull llama3.2:3b
+docker exec ukraine-bot-ollama ollama pull mxbai-embed-large
 ```
 
 ---

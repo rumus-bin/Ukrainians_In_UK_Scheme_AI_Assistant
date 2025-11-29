@@ -1,0 +1,67 @@
+ukraine_scheme_ai_assistant/
+│
+├── 📁 src/                         # Source code
+│   ├── 📁 agents/                  # Multi-agent system (TODO)
+│   │   └── __init__.py
+│   ├── 📁 bot/                     # Telegram bot
+│   │   ├── __init__.py
+│   │   └── main.py                 # ✅ Bot entry point
+│   ├── 📁 rag/                     # RAG pipeline (TODO)
+│   │   └── __init__.py
+│   ├── 📁 scrapers/                # Web scrapers
+│   │   ├── __init__.py
+│   │   └── scheduler.py            # ✅ Scraper scheduler
+│   ├── 📁 utils/                   # Utilities
+│   │   ├── __init__.py
+│   │   ├── config.py               # ✅ Configuration management
+│   │   └── logger.py               # ✅ Logging setup
+│   ├── 📁 vectorstore/             # Vector DB (TODO)
+│   │   └── __init__.py
+│   └── __init__.py
+│
+├── 📁 data/                        # Data storage (gitignored)
+│   ├── 📁 scraped/                 # Raw scraped content
+│   ├── 📁 chunks/                  # Processed text chunks
+│   └── 📁 vectordb/                # Vector database files
+│
+├── 📁 tests/                       # Testing (TODO)
+│   ├── 📁 unit/                    # Unit tests
+│   └── 📁 integration/             # Integration tests
+│
+├── 📁 docker/                      # Docker configuration
+│   ├── Dockerfile.bot              # ✅ Bot container
+│   └── Dockerfile.scraper          # ✅ Scraper container
+│
+├── 📁 logs/                        # Application logs (gitignored)
+│
+├── 📁 specs/                       # Project specifications
+│   ├── 📁 epics/
+│   └── 📁 dev_sessions/
+│
+├── 📁 ai_docs/                     # AI development docs
+│
+├── 📁 .claude/                     # Claude Code configuration
+│
+├── 📄 docker-compose.yml           # ✅ Service orchestration
+├── 📄 requirements.txt             # ✅ Python dependencies
+├── 📄 pyproject.toml               # ✅ Project configuration
+├── 📄 .env.example                 # ✅ Environment template
+├── 📄 .gitignore                   # ✅ Git ignore rules
+│
+├── 📄 README.md                    # 📋 Project PRD
+├── 📄 SETUP.md                     # ✅ Setup guide
+├── 📄 QUICKSTART.md                # ✅ Quick start guide
+└── 📄 dev_session_summary.md       # ✅ Session summary
+
+Legend:
+  ✅ = Implemented and ready
+  📋 = Documentation (existing)
+  TODO = To be implemented in next epics
+  (gitignored) = Not committed to git
+
+Services (Docker Compose):
+  🐳 ollama          - Local LLM inference (port 11434)
+  🐳 qdrant          - Vector database (port 6333)
+  🐳 bot             - Telegram bot application
+  🐳 scraper         - Scheduled web scraper
+

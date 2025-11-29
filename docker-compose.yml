@@ -39,10 +39,11 @@ services:
     networks:
       - bot-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:6333/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   # ChromaDB Vector Database (alternative option)
   # Uncomment if you prefer ChromaDB over Qdrant
@@ -67,11 +68,9 @@ services:
       dockerfile: docker/Dockerfile.bot
     container_name: ukraine-bot-app
     depends_on:
-      qdrant:
-        condition: service_healthy
+      - qdrant
       # Uncomment if using containerized Ollama:
-      # ollama:
-      #   condition: service_healthy
+      # - ollama
     volumes:
       - ./src:/app/src
       - ./data:/app/data

@@ -20,8 +20,8 @@ class Settings(BaseSettings):
 
     # Ollama Configuration
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model_name: str = "llama2:3b"
-    ollama_embedding_model: str = "nomic-embed-text"
+    ollama_model_name: str = "llama3.2:3b"
+    ollama_embedding_model: str = "mxbai-embed-large"
 
     # Vector Database Configuration
     vector_db_type: Literal["qdrant", "chroma"] = "qdrant"
@@ -36,11 +36,11 @@ class Settings(BaseSettings):
     rag_similarity_threshold: float = 0.7
 
     # Agent Configuration
-    orchestrator_model: str = "llama2:3b"
-    visa_agent_model: str = "llama2:3b"
-    housing_agent_model: str = "llama2:3b"
-    work_agent_model: str = "llama2:3b"
-    fallback_agent_model: str = "llama2:3b"
+    orchestrator_model: str = "llama3.2:3b"
+    visa_agent_model: str = "llama3.2:3b"
+    housing_agent_model: str = "llama3.2:3b"
+    work_agent_model: str = "llama3.2:3b"
+    fallback_agent_model: str = "llama3.2:3b"
 
     # Response Configuration
     max_response_tokens: int = 500
@@ -53,11 +53,20 @@ class Settings(BaseSettings):
     auto_translate_russian: bool = True
 
     # Scraper Configuration
-    scraper_enabled: bool = True
+    scraper_enabled: bool = False  # Disabled by default - use manual documents
+    scraper_govuk_enabled: bool = False  # Individual scraper toggle
+    scraper_opora_enabled: bool = False  # Individual scraper toggle
+    scraper_schedule_enabled: bool = False  # Disable scheduled scraping
     scraper_schedule_cron: str = "0 2 * * 0"
     scraper_user_agent: str = "Mozilla/5.0 (compatible; UkraineSupportBot/1.0)"
     scraper_request_delay_seconds: int = 2
     scraper_max_retries: int = 3
+
+    # Manual Document Ingestion Configuration
+    manual_docs_enabled: bool = True  # Use manually created documents
+    manual_docs_path: str = "/app/data/manual_docs"  # Path to manual documents
+    manual_docs_format: str = "json"  # Format: json, txt, or markdown
+    manual_docs_recursive: bool = True  # Search subdirectories
 
     # Source URLs
     scraper_gov_uk_base: str = "https://www.gov.uk"

@@ -1,0 +1,13 @@
+{
+  "run_timestamp": "2025-11-30T18:06:29.538009",
+  "documents_loaded": 15,
+  "manual_documents": 0,
+  "govuk_documents": 0,
+  "opora_documents": 0,
+  "chunks_created": 31,
+  "chunks_embedded": 0,
+  "chunks_stored": 0,
+  "errors": 2,
+  "duration_seconds": 0.016995,
+  "success": false
+}

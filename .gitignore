@@ -69,6 +69,7 @@ chunks_data/
 .coverage
 htmlcov/
 .tox/
+test_*_demo.py
 
 # Jupyter Notebook
 .ipynb_checkpoints

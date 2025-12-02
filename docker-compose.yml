@@ -76,6 +76,11 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./.env:/app/.env
+      - ./run_ingestion.py:/app/run_ingestion.py
+      - ./demo_rag_query.py:/app/demo_rag_query.py
+      - ./test_rag_pipeline.py:/app/test_rag_pipeline.py
+      - ./test_embedding_model.py:/app/test_embedding_model.py
+      - ./test_similarity_scores.py:/app/test_similarity_scores.py
     env_file:
       - .env
     environment:

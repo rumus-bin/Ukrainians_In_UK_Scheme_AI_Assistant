@@ -27,7 +27,8 @@ Create JSON files with structured document data:
       "source": "gov.uk",
       "title": "Document Title",
       "url": "https://www.gov.uk/...",
-      "category": "visa"
+      "category": "visa",
+      "document_date": "2024-12-21"
     }
   }
 ]
@@ -40,11 +41,16 @@ Or use the structured format:
   "documents": [
     {
       "text": "Content...",
-      "metadata": { ... }
+      "metadata": {
+        "title": "Document Title",
+        "document_date": "2024-12-21T10:00:00"
+      }
     }
   ]
 }
 ```
+
+**Important**: The `document_date` field is crucial for the RAG system to provide up-to-date information. It can be specified in the metadata or at the document level. If not provided, the system will use the file modification time as a fallback.
 
 ### 2. Plain Text Format
 
@@ -62,21 +68,26 @@ Create `.md` files with Markdown content. The system will:
 
 ## Directory Structure
 
-You can organize documents in subdirectories:
+The manual documents directory uses an **active/archive** workflow:
 
 ```
 data/manual_docs/
 ├── README.md
-├── visa/
-│   ├── ukraine_extension_scheme.json
-│   └── visa_requirements.json
-├── housing/
-│   ├── homes_for_ukraine.json
-│   └── tenant_rights.json
-└── work/
-    ├── work_permits.json
-    └── ni_number.json
+├── active/          # Only documents in this folder are processed
+│   ├── visa/
+│   │   ├── ukraine_extension_scheme.json
+│   │   └── visa_requirements.json
+│   ├── housing/
+│   │   ├── homes_for_ukraine.json
+│   │   └── tenant_rights.json
+│   └── work/
+│       ├── work_permits.json
+│       └── ni_number.json
+└── archive/         # Previously processed documents (not ingested)
+    └── old_data.json
 ```
+
+**Important**: The ingestion pipeline only processes documents from the `active/` subfolder. After processing, you can optionally move documents to the `archive/` folder to keep them for reference but exclude them from future ingestions.
 
 ## Example Document
 
@@ -84,9 +95,31 @@ See `example_document.json` for a template.
 
 ## Adding Documents
 
-1. Create your document file in this directory (or a subdirectory)
-2. Run the ingestion pipeline: `python run_ingestion.py`
-3. The documents will be loaded, chunked, and stored in the vector database
+1. Create your document file in the `active/` directory (or a subdirectory within `active/`)
+2. **Important**: Include a `document_date` field in your metadata to ensure accurate date-based retrieval
+3. Run the ingestion pipeline: `python run_ingestion.py`
+4. The documents will be loaded, chunked, and stored in the vector database
+5. Optionally, move processed documents to `archive/` to keep them for reference
+
+### Document Date Format
+
+The system supports multiple date formats:
+- ISO format: `"2024-12-21T10:00:00"` or `"2024-12-21"`
+- UK format: `"21/12/2024"` or `"21-12-2024"`
+
+Example with explicit date:
+```json
+{
+  "text": "The Ukraine Extension Scheme allows...",
+  "metadata": {
+    "title": "Ukraine Extension Scheme 2024",
+    "source": "gov.uk",
+    "document_date": "2024-12-21"
+  }
+}
+```
+
+If no `document_date` is provided, the system will use the file's last modification time.
 
 ## Future Migration
 

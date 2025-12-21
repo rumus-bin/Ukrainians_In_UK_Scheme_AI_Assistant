@@ -1,6 +1,7 @@
 """Document loader for manual documents from filesystem."""
 
 import json
+import os
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -18,7 +19,8 @@ class ManualDocumentLoader:
         self,
         docs_path: Optional[str] = None,
         docs_format: Optional[str] = None,
-        recursive: bool = True
+        recursive: bool = True,
+        use_active_folder: bool = True
     ):
         """
         Initialize the document loader.
@@ -27,11 +29,20 @@ class ManualDocumentLoader:
             docs_path: Path to directory containing documents
             docs_format: Format of documents (json, txt, markdown)
             recursive: Whether to search subdirectories
+            use_active_folder: Whether to only load from 'active' subfolder (default: True)
         """
         settings = get_settings()
-        self.docs_path = Path(docs_path or settings.manual_docs_path)
+        base_path = Path(docs_path or settings.manual_docs_path)
+
+        # Use only the 'active' subfolder if enabled
+        if use_active_folder:
+            self.docs_path = base_path / "active"
+        else:
+            self.docs_path = base_path
+
         self.docs_format = docs_format or settings.manual_docs_format
         self.recursive = recursive
+        self.use_active_folder = use_active_folder
 
     def load_documents(self) -> List[Dict[str, Any]]:
         """
@@ -45,7 +56,7 @@ class ManualDocumentLoader:
             return []
 
         logger.info(f"Loading documents from: {self.docs_path}")
-        logger.info(f"Format: {self.docs_format}, Recursive: {self.recursive}")
+        logger.info(f"Format: {self.docs_format}, Recursive: {self.recursive}, Active folder only: {self.use_active_folder}")
 
         documents = []
 
@@ -70,17 +81,25 @@ class ManualDocumentLoader:
         pattern = "**/*.json" if self.recursive else "*.json"
 
         for json_file in self.docs_path.glob(pattern):
+            # Skip README and example files
+            if json_file.name.lower() in ['readme.json', 'example_document.json']:
+                logger.info(f"Skipping example/readme file: {json_file}")
+                continue
+
             try:
                 logger.info(f"Loading JSON file: {json_file}")
 
                 with open(json_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
+                # Get file modification time as fallback date
+                file_mtime = datetime.fromtimestamp(os.path.getmtime(json_file))
+
                 # Support different JSON structures
                 if isinstance(data, list):
                     # Array of documents
                     for item in data:
-                        doc = self._normalize_document(item, json_file)
+                        doc = self._normalize_document(item, json_file, file_mtime)
                         if doc:
                             documents.append(doc)
                 elif isinstance(data, dict):
@@ -88,12 +107,12 @@ class ManualDocumentLoader:
                     if 'documents' in data:
                         # Format: {"documents": [...]}
                         for item in data['documents']:
-                            doc = self._normalize_document(item, json_file)
+                            doc = self._normalize_document(item, json_file, file_mtime)
                             if doc:
                                 documents.append(doc)
                     else:
                         # Single document
-                        doc = self._normalize_document(data, json_file)
+                        doc = self._normalize_document(data, json_file, file_mtime)
                         if doc:
                             documents.append(doc)
 
@@ -124,6 +143,9 @@ class ManualDocumentLoader:
                 # Extract title from filename
                 title = txt_file.stem.replace('_', ' ').replace('-', ' ').title()
 
+                # Get file modification time as document date
+                file_mtime = datetime.fromtimestamp(os.path.getmtime(txt_file))
+
                 document = {
                     'text': text,
                     'metadata': {
@@ -132,6 +154,7 @@ class ManualDocumentLoader:
                         'title': title,
                         'url': f"file://{txt_file}",
                         'scraped_at': datetime.now().isoformat(),
+                        'document_date': file_mtime.isoformat(),
                         'type': 'text',
                         'document_type': 'manual'
                     }
@@ -151,6 +174,11 @@ class ManualDocumentLoader:
         pattern = "**/*.md" if self.recursive else "*.md"
 
         for md_file in self.docs_path.glob(pattern):
+            # Skip README files
+            if md_file.name.lower() == 'readme.md':
+                logger.info(f"Skipping README file: {md_file}")
+                continue
+
             try:
                 logger.info(f"Loading Markdown file: {md_file}")
 
@@ -164,6 +192,9 @@ class ManualDocumentLoader:
                 # Extract title from first heading or filename
                 title = self._extract_markdown_title(text) or md_file.stem.replace('_', ' ').replace('-', ' ').title()
 
+                # Get file modification time as document date
+                file_mtime = datetime.fromtimestamp(os.path.getmtime(md_file))
+
                 document = {
                     'text': text,
                     'metadata': {
@@ -172,6 +203,7 @@ class ManualDocumentLoader:
                         'title': title,
                         'url': f"file://{md_file}",
                         'scraped_at': datetime.now().isoformat(),
+                        'document_date': file_mtime.isoformat(),
                         'type': 'markdown',
                         'document_type': 'manual'
                     }
@@ -193,7 +225,7 @@ class ManualDocumentLoader:
                 return line[2:].strip()
         return None
 
-    def _normalize_document(self, data: Dict[str, Any], source_file: Path) -> Optional[Dict[str, Any]]:
+    def _normalize_document(self, data: Dict[str, Any], source_file: Path, file_mtime: datetime) -> Optional[Dict[str, Any]]:
         """
         Normalize document data to standard format.
 
@@ -204,6 +236,7 @@ class ManualDocumentLoader:
                 "source": "gov.uk",
                 "title": "Document Title",
                 "url": "https://...",
+                "document_date": "2024-12-21T10:00:00",
                 ...
             }
         }
@@ -211,6 +244,7 @@ class ManualDocumentLoader:
         Args:
             data: Raw document data
             source_file: Source file path for metadata
+            file_mtime: File modification time (used as fallback for document_date)
 
         Returns:
             Normalized document or None if invalid
@@ -245,6 +279,22 @@ class ManualDocumentLoader:
         if 'scraped_at' not in metadata:
             metadata['scraped_at'] = datetime.now().isoformat()
 
+        # Add document_date - check multiple possible sources
+        if 'document_date' not in metadata:
+            # Priority order: document_date > last_updated > date > file modification time
+            if 'last_updated' in metadata:
+                # Use existing last_updated field
+                metadata['document_date'] = metadata['last_updated']
+            elif 'date' in data:
+                metadata['document_date'] = data['date']
+            elif 'document_date' in data:
+                metadata['document_date'] = data['document_date']
+            elif 'last_updated' in data:
+                metadata['document_date'] = data['last_updated']
+            else:
+                # Use file modification time as fallback
+                metadata['document_date'] = file_mtime.isoformat()
+
         # Add document_type to distinguish manual docs from scraped
         metadata['document_type'] = 'manual'
 
@@ -257,7 +307,8 @@ class ManualDocumentLoader:
 def load_manual_documents(
     docs_path: Optional[str] = None,
     docs_format: Optional[str] = None,
-    recursive: bool = True
+    recursive: bool = True,
+    use_active_folder: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Convenience function to load manual documents.
@@ -266,6 +317,7 @@ def load_manual_documents(
         docs_path: Path to directory containing documents
         docs_format: Format of documents (json, txt, markdown)
         recursive: Whether to search subdirectories
+        use_active_folder: Whether to only load from 'active' subfolder (default: True)
 
     Returns:
         List of document dictionaries
@@ -273,6 +325,7 @@ def load_manual_documents(
     loader = ManualDocumentLoader(
         docs_path=docs_path,
         docs_format=docs_format,
-        recursive=recursive
+        recursive=recursive,
+        use_active_folder=use_active_folder
     )
     return loader.load_documents()

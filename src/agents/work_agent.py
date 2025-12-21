@@ -13,7 +13,7 @@ class WorkAgent(BaseAgent):
         super().__init__(
             name="work_agent",
             model=settings.work_agent_model,
-            topic_filter="work"  # Filter RAG results to work-related documents
+            topic_filter=None  # Disable topic filter - use semantic search only
         )
 
     def _build_system_prompt(self) -> str:

@@ -1,7 +1,7 @@
 """Main entry point for the Telegram bot application."""
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, ChatMemberHandler, filters, ContextTypes
 
 from src.bot.handlers import get_bot_handlers
 from src.utils.config import get_settings
@@ -42,6 +42,9 @@ def main():
     application.add_handler(CommandHandler("start", handlers.handle_start))
     application.add_handler(CommandHandler("help", handlers.handle_help))
     application.add_handler(CommandHandler("health", handlers.handle_health))
+
+    # Add chat member handler (for bot being added/removed from groups)
+    application.add_handler(ChatMemberHandler(handlers.handle_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))
 
     # Add message handler (exclude edited messages to avoid duplicates)
     application.add_handler(

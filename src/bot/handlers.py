@@ -5,9 +5,9 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Tuple
 
-from telegram import Update
+from telegram import Update, ChatMemberUpdated
 from telegram.ext import ContextTypes
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatMemberStatus
 
 from src.agents.orchestrator import get_orchestrator
 from src.language.detector import get_language_detector
@@ -15,6 +15,7 @@ from src.language.translator import get_translator
 from src.safety.validator import get_response_validator
 from src.safety.content_filter import get_content_filter
 from src.bot.response_formatter import get_response_formatter
+from src.bot.welcome_messages import get_group_welcome_message
 from src.rag.retriever import get_retriever
 from src.utils.config import get_settings
 from src.utils.logger import get_logger
@@ -184,6 +185,49 @@ class BotHandlers:
                 f"Деталі: {str(e)}"
             )
             await update.message.reply_text(error_message)
+
+    async def handle_my_chat_member(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle bot being added to or removed from a chat."""
+        try:
+            chat_member: ChatMemberUpdated = update.my_chat_member
+
+            if not chat_member:
+                return
+
+            chat = chat_member.chat
+            old_status = chat_member.old_chat_member.status
+            new_status = chat_member.new_chat_member.status
+
+            # Check if bot was just added to a group
+            was_not_member = old_status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]
+            is_now_member = new_status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR]
+
+            if was_not_member and is_now_member:
+                # Bot was added to the group
+                if chat.type in ["group", "supergroup"]:
+                    logger.info(
+                        f"Bot added to group: {chat.title} (ID: {chat.id}) "
+                        f"by user {chat_member.from_user.username or 'Unknown'}"
+                    )
+
+                    # Send welcome message
+                    # Use 'detailed' style - comprehensive guide for users with varying tech skills
+                    welcome_msg = get_group_welcome_message(style="detailed")
+
+                    await context.bot.send_message(
+                        chat_id=chat.id,
+                        text=welcome_msg
+                    )
+                    logger.info(f"Welcome message sent to group {chat.title}")
+
+            # Log if bot was removed
+            elif is_now_member and old_status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]:
+                logger.info(
+                    f"Bot removed from group: {chat.title} (ID: {chat.id})"
+                )
+
+        except Exception as e:
+            logger.exception(f"Error handling my_chat_member event: {e}")
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle incoming text messages."""

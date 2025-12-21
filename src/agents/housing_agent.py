@@ -18,12 +18,12 @@ class HousingAgent(BaseAgent):
         super().__init__(
             name="housing_agent",
             model=settings.housing_agent_model,
-            topic_filter="housing"  # Filter RAG results to housing-related documents
+            topic_filter=None  # Disable topic filter - use semantic search only
         )
 
         # Initialize MCP client for web access
         self.mcp_client = get_mcp_client()
-        self.use_web_search = True  # Enable web search by default
+        self.use_web_search = False  # Disabled - use RAG database only
 
     def _build_system_prompt(self) -> str:
         """Build housing agent system prompt with safety rules."""

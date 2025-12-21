@@ -228,14 +228,21 @@ class BotHandlers:
                 )
                 return
 
+            # Strip bot mention from query (for better RAG matching)
+            clean_query = message_text
+            bot_username = self.settings.telegram_bot_username
+            if bot_username and f"@{bot_username}" in message_text:
+                clean_query = message_text.replace(f"@{bot_username}", "").strip()
+                logger.debug(f"Stripped bot mention, clean query: {clean_query[:50]}...")
+
             # Language detection
-            detected_lang = self.language_detector.detect(message_text)
+            detected_lang = self.language_detector.detect(clean_query)
             logger.info(f"Detected language: {detected_lang}")
 
             # Translate Russian to Ukrainian if needed
-            query_ua = message_text
+            query_ua = clean_query
             if detected_lang == "ru" and self.settings.auto_translate_russian:
-                query_ua = await self.translator.translate_ru_to_ua(message_text)
+                query_ua = await self.translator.translate_ru_to_ua(clean_query)
                 logger.info(f"Translated: {query_ua[:50]}...")
 
             # Process with orchestrator

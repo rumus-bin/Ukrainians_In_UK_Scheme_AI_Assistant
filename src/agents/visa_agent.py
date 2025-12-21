@@ -13,7 +13,7 @@ class VisaAgent(BaseAgent):
         super().__init__(
             name="visa_agent",
             model=settings.visa_agent_model,
-            topic_filter="visa"  # Filter RAG results to visa-related documents
+            topic_filter=None  # Disable topic filter - use semantic search only
         )
 
     def _build_system_prompt(self) -> str:

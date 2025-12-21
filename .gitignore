@@ -64,6 +64,9 @@ ollama_models/
 scraped_data/
 chunks_data/
 
+# MCP server cache
+mcp-servers/web-scraper/cache/
+
 # Testing
 .pytest_cache/
 .coverage

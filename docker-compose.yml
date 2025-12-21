@@ -83,6 +83,7 @@ services:
       - ./test_rag_pipeline.py:/app/test_rag_pipeline.py
       - ./test_embedding_model.py:/app/test_embedding_model.py
       - ./test_similarity_scores.py:/app/test_similarity_scores.py
+      - ./test_qdrant_search.py:/app/test_qdrant_search.py
     env_file:
       - .env
     environment:

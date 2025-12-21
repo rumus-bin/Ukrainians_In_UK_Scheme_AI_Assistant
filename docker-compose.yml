@@ -73,6 +73,8 @@ services:
       # - ollama
     volumes:
       - ./src:/app/src
+      - ./tests:/app/tests
+      - ./mcp-servers:/app/mcp-servers
       - ./data:/app/data
       - ./logs:/app/logs
       - ./.env:/app/.env
@@ -125,6 +127,24 @@ services:
     # Run weekly scraping via cron inside container
     command: sh -c "python -m src.scrapers.scheduler"
 
+  # MCP Web Scraper Service (provides real-time web access to agents)
+  mcp-scraper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mcp-scraper
+    container_name: ukraine-bot-mcp-scraper
+    volumes:
+      - ./mcp-servers/web-scraper:/app/mcp-servers/web-scraper
+      - mcp_cache:/app/mcp-servers/web-scraper/cache
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - bot-network
+    # MCP server runs on stdio, no exposed ports needed
+    # Agents will connect via MCP client
+
 networks:
   bot-network:
     driver: bridge
@@ -135,4 +155,6 @@ volumes:
   qdrant_data:
     driver: local
   chroma_data:
+    driver: local
+  mcp_cache:
     driver: local

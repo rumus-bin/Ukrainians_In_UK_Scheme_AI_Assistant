@@ -43,9 +43,12 @@ def main():
     application.add_handler(CommandHandler("help", handlers.handle_help))
     application.add_handler(CommandHandler("health", handlers.handle_health))
 
-    # Add message handler
+    # Add message handler (exclude edited messages to avoid duplicates)
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message)
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND & ~filters.UpdateType.EDITED_MESSAGE,
+            handlers.handle_message
+        )
     )
 
     # Add error handler

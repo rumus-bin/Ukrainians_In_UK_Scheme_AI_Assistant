@@ -1,0 +1,155 @@
+# Predefined web sources for MCP web scraper
+# These sources will be used by agents to fetch real-time information
+
+sources:
+  # Opora.uk sources
+  opora_housing:
+    base_url: "https://opora.uk"
+    sections:
+      - path: "/housing"
+        name: "Housing General"
+        description: "General housing information for Ukrainians in UK"
+        priority: high
+        cache_ttl: 86400  # 24 hours in seconds
+
+      - path: "/housing/tenant-rights"
+        name: "Tenant Rights"
+        description: "Rights and responsibilities of tenants in UK"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/housing/social-housing"
+        name: "Social Housing"
+        description: "Council housing and social housing information"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/housing/homes-for-ukraine"
+        name: "Homes for Ukraine Scheme"
+        description: "Specific information about Homes for Ukraine scheme"
+        priority: critical
+        cache_ttl: 43200  # 12 hours
+
+    selectors:
+      # CSS selectors for extracting content from Opora.uk
+      article_container: "article, .article-content, .post-content"
+      title: "h1, .article-title"
+      content: "article p, .article-content p, .post-content p"
+      links: "article a, .article-content a"
+      date: "time, .published-date, .article-date"
+
+  opora_nhs:
+    base_url: "https://opora.uk"
+    sections:
+      - path: "/nhs"
+        name: "NHS General"
+        description: "NHS and healthcare information"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/nhs/gp-registration"
+        name: "GP Registration"
+        description: "How to register with a GP in UK"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/nhs/emergency-services"
+        name: "Emergency Services"
+        description: "Emergency healthcare services in UK"
+        priority: critical
+        cache_ttl: 43200
+
+    selectors:
+      article_container: "article, .article-content, .post-content"
+      title: "h1, .article-title"
+      content: "article p, .article-content p, .post-content p"
+      links: "article a, .article-content a"
+
+  # Gov.uk sources
+  govuk_housing:
+    base_url: "https://www.gov.uk"
+    sections:
+      - path: "/housing-for-ukraine"
+        name: "Housing for Ukraine"
+        description: "Official UK government Homes for Ukraine scheme"
+        priority: critical
+        cache_ttl: 43200
+
+      - path: "/council-housing"
+        name: "Council Housing"
+        description: "Council housing application and information"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/private-renting"
+        name: "Private Renting"
+        description: "Private renting rights and responsibilities"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/housing-benefit"
+        name: "Housing Benefit"
+        description: "Housing benefit and Universal Credit for housing"
+        priority: high
+        cache_ttl: 86400
+
+    selectors:
+      # Gov.uk specific selectors
+      article_container: ".gem-c-govspeak, article"
+      title: "h1, .gem-c-title__text"
+      content: ".gem-c-govspeak p, article p"
+      links: ".gem-c-govspeak a, article a"
+
+  govuk_nhs:
+    base_url: "https://www.gov.uk"
+    sections:
+      - path: "/nhs-services"
+        name: "NHS Services"
+        description: "NHS services overview"
+        priority: high
+        cache_ttl: 86400
+
+      - path: "/register-with-a-gp"
+        name: "GP Registration"
+        description: "How to register with a GP"
+        priority: high
+        cache_ttl: 86400
+
+# Scraping behavior configuration
+scraping:
+  # Rate limiting
+  rate_limit:
+    requests_per_minute: 10
+    delay_between_requests: 2.0  # seconds
+
+  # Timeouts
+  timeout:
+    connect: 10  # seconds
+    read: 30     # seconds
+
+  # User agent
+  user_agent: "UkraineSupportBot/1.0 (non-commercial; helping Ukrainian refugees; +https://github.com/ukraine-bot)"
+
+  # Retries
+  retries:
+    max_attempts: 3
+    backoff_factor: 2  # exponential backoff: 2, 4, 8 seconds
+
+  # Content extraction
+  extraction:
+    min_text_length: 50  # Minimum characters for valid content
+    max_text_length: 10000  # Maximum characters to extract
+    remove_tags: ["script", "style", "nav", "footer", "header"]
+
+  # Caching
+  cache:
+    enabled: true
+    directory: "/app/mcp-servers/web-scraper/cache/html"
+    default_ttl: 86400  # 24 hours
+    max_size_mb: 500  # Maximum cache size
+
+# Robots.txt compliance
+robots:
+  enabled: true
+  cache_ttl: 86400  # Cache robots.txt for 24 hours
+  respect_crawl_delay: true

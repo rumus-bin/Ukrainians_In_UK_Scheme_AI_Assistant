@@ -190,10 +190,15 @@ class BotHandlers:
         start_time = time.time()
 
         try:
-            # Extract message details
+            # Extract message details (works for both message and edited_message)
+            message = update.effective_message
+            if not message or not message.text:
+                logger.debug("Ignoring update without text message")
+                return
+
             user_id = update.effective_user.id
             username = update.effective_user.username or "Unknown"
-            message_text = update.message.text
+            message_text = message.text
             chat_type = update.effective_chat.type
 
             logger.info(
@@ -211,14 +216,14 @@ class BotHandlers:
             allowed, rate_limit_msg = self.rate_limiter.check_rate_limit(user_id)
             if not allowed:
                 logger.warning(f"Rate limit exceeded for user {user_id}")
-                await update.message.reply_text(rate_limit_msg)
+                await message.reply_text(rate_limit_msg)
                 return
 
             # Validate content
             is_valid, error_msg = self.content_filter.validate_query(message_text)
             if not is_valid:
                 logger.warning(f"Invalid content from user {user_id}: {error_msg}")
-                await update.message.reply_text(
+                await message.reply_text(
                     f"⚠️ {error_msg}\n\nСпробуйте переформулювати питання."
                 )
                 return
@@ -247,12 +252,21 @@ class BotHandlers:
             # Format response
             formatted_message = self.formatter.format(validated_response)
 
-            # Send response
-            await update.message.reply_text(
-                formatted_message,
-                parse_mode=ParseMode.MARKDOWN,
-                disable_web_page_preview=False
-            )
+            # Send response with Markdown, fallback to plain text if parsing fails
+            try:
+                await message.reply_text(
+                    formatted_message,
+                    parse_mode=ParseMode.MARKDOWN,
+                    disable_web_page_preview=False
+                )
+            except Exception as markdown_error:
+                # If Markdown parsing fails, retry without parse_mode
+                logger.warning(f"Markdown parsing failed, retrying with plain text: {markdown_error}")
+                await message.reply_text(
+                    formatted_message,
+                    parse_mode=None,
+                    disable_web_page_preview=False
+                )
 
             # Log performance
             processing_time = time.time() - start_time
@@ -312,7 +326,11 @@ class BotHandlers:
         error_message = self.formatter.format_error("general")
 
         try:
-            await update.message.reply_text(error_message)
+            message = update.effective_message
+            if message:
+                await message.reply_text(error_message)
+            else:
+                logger.error("Cannot send error response: no message in update")
         except Exception as e:
             logger.error(f"Failed to send error response: {e}")
 

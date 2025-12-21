@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     scraper_request_delay_seconds: int = 2
     scraper_max_retries: int = 3
 
+    # Pagination Configuration
+    scraper_pagination_enabled: bool = True  # Enable pagination for multi-page scraping
+    scraper_max_pages: int = 5  # Maximum pages to fetch when pagination is enabled
+    scraper_pagination_timeout_seconds: int = 30  # Total timeout for paginated fetches
+
     # Manual Document Ingestion Configuration
     manual_docs_enabled: bool = True  # Use manually created documents
     manual_docs_path: str = "/app/data/manual_docs"  # Path to manual documents

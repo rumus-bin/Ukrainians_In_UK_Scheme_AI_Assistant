@@ -31,6 +31,9 @@ class ResponseFormatter:
         try:
             formatted_text = response.text
 
+            # Escape Markdown special characters to prevent parsing errors
+            formatted_text = self._escape_markdown(formatted_text)
+
             # Ensure proper emoji formatting (add spaces if needed)
             formatted_text = self._format_emojis(formatted_text)
 
@@ -52,6 +55,36 @@ class ResponseFormatter:
             logger.error(f"Error formatting response: {e}")
             # Return original text if formatting fails
             return response.text
+
+    def _escape_markdown(self, text: str) -> str:
+        """
+        Escape Markdown special characters to prevent parsing errors.
+
+        Args:
+            text: Text to escape
+
+        Returns:
+            Text with escaped Markdown characters
+        """
+        # Markdown special characters that need escaping
+        # Using Markdown (not MarkdownV2), so we need to escape: _ * [ ] ( ) ~ ` > # + - = | { } . !
+        # But we want to preserve intentional formatting, so we'll only escape problematic patterns
+
+        # Escape underscores that aren't part of valid italic/bold formatting
+        # Replace standalone underscores or unbalanced underscores
+        text = re.sub(r'(?<!\w)_(?!\w)', r'\\_', text)  # Standalone underscores
+
+        # Escape asterisks that aren't part of valid bold formatting
+        text = re.sub(r'(?<!\*)\*(?!\*)', r'\\*', text)  # Single asterisks
+
+        # Escape square brackets that aren't part of valid links [text](url)
+        # Only escape if not followed by (url)
+        text = re.sub(r'\[([^\]]*)\](?!\()', r'\\[\1\\]', text)
+
+        # Escape backticks that might cause code block issues
+        # text = re.sub(r'`', r'\\`', text)
+
+        return text
 
     def _format_emojis(self, text: str) -> str:
         """

@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Create cache directory
+RUN mkdir -p /app/mcp-servers/web-scraper/cache/html
+
+# Copy MCP server code
+COPY mcp-servers/web-scraper /app/mcp-servers/web-scraper
+
+# Set Python path
+ENV PYTHONPATH=/app/mcp-servers/web-scraper:$PYTHONPATH
+
+WORKDIR /app/mcp-servers/web-scraper
+
+# Default command (can be overridden)
+CMD ["python", "server.py"]

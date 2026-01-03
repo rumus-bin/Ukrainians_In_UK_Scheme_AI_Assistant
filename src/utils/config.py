@@ -94,6 +94,16 @@ class Settings(BaseSettings):
     test_mode: bool = False
     dry_run: bool = False
 
+    # Train Monitor Configuration
+    train_monitor_enabled: bool = False
+    train_monitor_dry_run: bool = True  # Use LogNotifier (logs only) when True
+    train_monitor_provider_type: str = "env"  # env, database, file
+    train_monitor_config_file: str = "/app/config/train_stations.json"
+
+    # Darwin API Configuration
+    darwin_api_key: str = ""
+    darwin_wsdl_url: str = "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/wsdl.aspx"
+
 
 # Global settings instance
 _settings: Settings | None = None

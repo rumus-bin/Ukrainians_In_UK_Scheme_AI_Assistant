@@ -146,6 +146,36 @@ services:
     # MCP server runs on stdio, no exposed ports needed
     # Agents will connect via MCP client
 
+  # Train Monitor Service - Daily Scheduler (monitors UK train stations)
+  # Checks train schedules 3 times daily (7:00, 9:00, 12:00) and sends Ukrainian notifications
+  train-monitor:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.bot
+    container_name: ukraine-bot-train-monitor
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./.env:/app/.env
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/London  # UK timezone for 7:00 AM check
+    restart: unless-stopped
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep '[p]ython -m src.train_monitor.daily_monitor' || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Start daily monitor (scheduled checks at 7:00, 9:00, and 12:00)
+    command: python -m src.train_monitor.daily_monitor --time 07:00,09:00,12:00
+
 networks:
   bot-network:
     driver: bridge

@@ -20,6 +20,10 @@ lxml>=5.1.0
 selenium>=4.38.0
 python-dateutil>=2.8.0
 
+# Train Monitor - Darwin API
+nrewebservices>=0.1.5
+APScheduler>=3.10.0
+
 # MCP (Model Context Protocol)
 mcp>=1.0.0
 
